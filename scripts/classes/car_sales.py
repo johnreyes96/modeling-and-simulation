@@ -7,56 +7,51 @@ Original file is located at
     https://colab.research.google.com/github/johnreyes96/modeling-and-simulation/blob/master/scripts/CarSales.ipynb
 """
 
-from google.colab import drive
-drive.mount('/content/drive')
-
-cd /content/drive/MyDrive/modeling_and_simulation
-
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
-carSales_df = pd.read_csv("car_sales.csv")
+carSales_df = pd.read_csv("../../data/car_sales.csv")
 
-carSales_df.head()
+print(carSales_df.head())
 
-carSales_df.describe()
+print(carSales_df.describe())
 
 """# Análisis univariado"""
 
 columns = ['Price', 'Mileage', 'EngineV', 'Year']
 for i in columns:
     plt.figure()
-    sns.distplot(carSales_df[i])
+    sns.histplot(carSales_df[i])
 
 columns = ['Price', 'Mileage', 'EngineV', 'Year']
 for i in columns:
     plt.figure()
-    sns.kdeplot(carSales_df[i],shade=True,hue=carSales_df['Engine Type'])
+    sns.kdeplot(data=carSales_df, x=i, fill=True, hue='Engine Type', common_norm=False)
 
-carSales_df['Brand'].value_counts(normalize=True)
+print(carSales_df['Brand'].value_counts(normalize=True))
 
-carSales_df['Engine Type'].value_counts(normalize=True)
+print(carSales_df['Engine Type'].value_counts(normalize=True))
 
-carSales_df['Body'].value_counts(normalize=True)
+print(carSales_df['Body'].value_counts(normalize=True))
 
-carSales_df['Model'].value_counts(normalize=True)
+print(carSales_df['Model'].value_counts(normalize=True))
 
-carSales_df['Price'].value_counts(normalize=True)
+print(carSales_df['Price'].value_counts(normalize=True))
 
-carSales_df['Mileage'].value_counts(normalize=True)
+print(carSales_df['Mileage'].value_counts(normalize=True))
 
 """# Análisis bivariado"""
 
-sns.pairplot(carSales_df,hue='Engine Type')
+sns.pairplot(carSales_df, hue='Engine Type')
 
 """# Depurar datos nulos"""
 
 carSales_df.dropna(inplace=True)
 
-carSales_df.isnull().sum()
+print(carSales_df.isnull().sum())
 
 """# Exploración de datos
 
@@ -64,7 +59,8 @@ carSales_df.isnull().sum()
 """
 
 distribution = carSales_df["Brand"].value_counts()
-fig = px.pie(values=distribution.values, names=["Volkswagen", "Mercedes-Benz", "BMW", "Toyota", "Renault", "Audi", "Mitsubishi"])
+fig = px.pie(values=distribution.values,
+             names=["Volkswagen", "Mercedes-Benz", "BMW", "Toyota", "Renault", "Audi", "Mitsubishi"])
 fig.show()
 
 """# 2. ¿Cuál es la proporción de las ventas por tipo de combustible?"""
@@ -83,7 +79,7 @@ fig.show()
 
 carSales_df["Year"].value_counts()
 df_years = carSales_df.groupby(["Year"]).size().reset_index(name='counts')
-fig = px.line(df_years,x="Year",y="counts", title="Año de fabricación de los carros vendidos")
+fig = px.line(df_years, x="Year", y="counts", title="Año de fabricación de los carros vendidos")
 fig.show()
 
 """# 5. Diferencia de crecimiento de ventas de vehículos por tipo de combustible a lo largo de los años."""
@@ -96,32 +92,33 @@ other = carSales_df[carSales_df["Engine Type"] == "Other"]
 col = "Year"
 
 vc1 = diesel[col].value_counts().reset_index()
-vc1 = vc1.rename(columns = {col : "count", "index" : col})
-vc1['percent'] = vc1['count'].apply(lambda x : 100*x/sum(vc1['count']))
+vc1 = vc1.rename(columns={col: "count", "index": col})
+vc1['percent'] = vc1['count'].apply(lambda x: 100 * x / sum(vc1['count']))
 vc1 = vc1.sort_values(col)
 
 vc2 = petrol[col].value_counts().reset_index()
-vc2 = vc2.rename(columns = {col : "count", "index" : col})
-vc2['percent'] = vc2['count'].apply(lambda x : 100*x/sum(vc2['count']))
+vc2 = vc2.rename(columns={col: "count", "index": col})
+vc2['percent'] = vc2['count'].apply(lambda x: 100 * x / sum(vc2['count']))
 vc2 = vc2.sort_values(col)
 
 vc3 = gas[col].value_counts().reset_index()
-vc3 = vc3.rename(columns = {col : "count", "index" : col})
-vc3['percent'] = vc3['count'].apply(lambda x : 100*x/sum(vc3['count']))
+vc3 = vc3.rename(columns={col: "count", "index": col})
+vc3['percent'] = vc3['count'].apply(lambda x: 100 * x / sum(vc3['count']))
 vc3 = vc3.sort_values(col)
 
 vc4 = other[col].value_counts().reset_index()
-vc4 = vc4.rename(columns = {col : "count", "index" : col})
-vc4['percent'] = vc4['count'].apply(lambda x : 100*x/sum(vc4['count']))
+vc4 = vc4.rename(columns={col: "count", "index": col})
+vc4['percent'] = vc4['count'].apply(lambda x: 100 * x / sum(vc4['count']))
 vc4 = vc4.sort_values(col)
-
 
 trace1 = go.Scatter(x=vc1[col], y=vc1["count"], name="Diesel", marker=dict(color="#a678de"))
 trace2 = go.Scatter(x=vc2[col], y=vc2["count"], name="Petrol", marker=dict(color="#6ad49b"))
 trace3 = go.Scatter(x=vc3[col], y=vc2["count"], name="Gas", marker=dict(color="#789dde"))
 trace4 = go.Scatter(x=vc4[col], y=vc2["count"], name="Other", marker=dict(color="#de7878"))
 data = [trace1, trace2, trace3, trace4]
-layout = go.Layout(title="Diferencia de crecimiento de ventas de vehículos por tipo de combustible a lo largo de los años", legend=dict(x=0.1, y=1.1, orientation="h"))
+layout = go.Layout(
+    title="Diferencia de crecimiento de ventas de vehículos por tipo de combustible a lo largo de los años",
+    legend=dict(x=0.1, y=1.1, orientation="h"))
 fig = go.Figure(data, layout=layout)
 fig.show()
 
@@ -132,6 +129,7 @@ Cálculo total de ventas por modelo
 
 model_number = {}
 
+
 def count_models(one_row):
     if one_row in model_number.keys():
         count = model_number[one_row] + 1
@@ -139,11 +137,12 @@ def count_models(one_row):
     else:
         model_number[one_row] = 1
 
+
 carSales_df["Model"].apply(count_models)
 
 model = []
-number =[]
-for key,val in model_number.items():
+number = []
+for key, val in model_number.items():
     model.append(key)
     number.append(val)
 
@@ -152,14 +151,15 @@ model_df = pd.DataFrame.from_dict(model_n)
 
 list_of_models = ["E-Class", "A6", "Vito", "Kangoo", "Camry"]
 filt = model_df["model"].isin(list_of_models)
-df_model_list = model_df.loc[filt,]
+df_model_list = model_df.loc[filt, ]
 
-fig = px.bar(df_model_list, x="number",y="model", orientation="h")
+fig = px.bar(df_model_list, x="number", y="model", orientation="h")
 fig.show()
 
 """# 7. Top 5 de los precios de vehículos mas vendidos"""
 
 price_number = {}
+
 
 def count_prices(one_row):
     if one_row in price_number.keys():
@@ -168,11 +168,12 @@ def count_prices(one_row):
     else:
         price_number[one_row] = 1
 
+
 carSales_df["Price"].apply(count_prices)
 
 price = []
-number =[]
-for key,val in price_number.items():
+number = []
+for key, val in price_number.items():
     price.append(key)
     number.append(val)
 
@@ -181,14 +182,15 @@ price_df = pd.DataFrame.from_dict(price_n)
 
 list_of_models = [6500.00, 8500.00, 10500.00, 8900.00, 7500.00]
 filt = price_df["price"].isin(list_of_models)
-df_model_list = price_df.loc[filt,]
+df_model_list = price_df.loc[filt, ]
 
-fig = px.bar(df_model_list, x="number",y="price", orientation="h")
+fig = px.bar(df_model_list, x="number", y="price", orientation="h")
 fig.show()
 
 """# 8. Top 5 de los kilometrajes en vehículos mas vendidos"""
 
 mileage_number = {}
+
 
 def count_mileages(one_row):
     if one_row in mileage_number.keys():
@@ -197,11 +199,12 @@ def count_mileages(one_row):
     else:
         mileage_number[one_row] = 1
 
+
 carSales_df["Mileage"].apply(count_mileages)
 
 mileage = []
-number =[]
-for key,val in mileage_number.items():
+number = []
+for key, val in mileage_number.items():
     mileage.append(key)
     number.append(val)
 
@@ -210,9 +213,9 @@ mileage_df = pd.DataFrame.from_dict(mileage_n)
 
 list_of_models = [0, 1, 200, 250, 300]
 filt = mileage_df["mileage"].isin(list_of_models)
-df_model_list = mileage_df.loc[filt,]
+df_model_list = mileage_df.loc[filt, ]
 
-fig = px.bar(df_model_list, x="number",y="mileage", orientation="h")
+fig = px.bar(df_model_list, x="number", y="mileage", orientation="h")
 fig.show()
 
 """# Conclusión
